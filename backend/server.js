@@ -23,8 +23,6 @@ db.once('open', function() {
 	});
 
 	Preference = mongoose.model('Preference', PreferenceSchema);
-
-
 });
 
 mongoose.connect('mongodb://localhost/test');
@@ -38,7 +36,7 @@ function saveNewsToDb(obj){
 		trail = $.text();
 	}
 	catch(err){
-		console.log(err);
+		//console.log(err);
 	}
 	var article = new Article({
 		id: obj.id,
@@ -53,7 +51,9 @@ function saveNewsToDb(obj){
 	});
 }
 
+/*
 function savePrefNewsToDb(obj){
+
 	var $;
 	try{
 		var article = new Article({
@@ -68,21 +68,41 @@ function savePrefNewsToDb(obj){
 		trail = " ";
 	}
 
+	$ = cheerio.load(obj.fields.trailText);
+	var trail = $(obj.fields.trailText).text();
+	var article = new Article({
+		id: obj.id,
+		picurl: null,
+		headline: obj.fields.headline,
+		trailtext: trail,
+		url: obj.webUrl
+	});
 	article.save(function(err, article) {
 		if (err) console.error( "OH SHIT THERE IS AN ERROR!!!! " + err);
 		//console.dir(article);
 	});
 }
-
+*/
 function fetchNews(req,res){
-	var data = request('http://content.guardianapis.com/search?api-key=t3myqd7scnfu4t5w8zp7jx4v&show-fields=headline,trailText,main&page=3&page-size=10', function (error, response, body) {
+	var data = request('http://content.guardianapis.com/search?api-key=t3myqd7scnfu4t5w8zp7jx4v&show-fields=headline,trailText,main&page=1&page-size=100', function (error, response, body) {
 		if (!error && response.statusCode == 200) {
-			var jsonData = JSON.parse(body);
+			var jsonData = JSON.parse(body);			
 			for (var i = 0; i < jsonData.response.results.length; i++){
 				console.log(i);
 				saveNewsToDb(jsonData.response.results[i]);
 			}
+			res.send("write successful");
+			count++;
+		} else {
+			res.send("something went wrong...");
+
 		}
+	});
+}
+
+function getAllNews(req,res){
+	Article.find(function(err,data){
+		res.send(data);
 	});
 }
 
@@ -151,9 +171,16 @@ function extractImageURI(main){
 	}
 }
 
+/*
+ * the fetch works
+ * only save does't work! 
+ * * * * * * * */
+
 var server = restify.createServer();
-server.get('/getAllNews', fetchNews);
-server.get('/getPrefNews', getPrefNews);
+
+server.get('/getallnews', getAllNews);
+server.get('/fetchnews', fetchNews);
+//server.get('/fetchNews', getPrefNews);
 server.get('/addPrefs/:id', addPrefs)
 
 
