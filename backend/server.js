@@ -53,56 +53,8 @@ function saveNewsToDb(obj){
 	});
 }
 
-/*function savePrefNewsToDb(obj){
-
+function savePrefNewsToDb(obj){
 	var $;
-
-	try{
-		console.log(obj.fields.trailText);
-		$ = cheerio.load(obj.fields.trailText);
-	}
-	catch(err){
-		console.log("cheerio problem 1 " + err);
-	}
-	
-
-	try{
-		trail = $(obj.fields.trailText).text();
-	}
-	catch(err){
-		console.log("cheerio problem " + err);
-	}
-	
-	try {
-		console.log(extractImageURI(obj.fields.main));
-	}
-	catch(err){
-		console.log("1 " + err);
-	}
-	try {
-		console.log(obj.fields.headline);
-	}
-	catch(err){
-		console.log("2 " + err);
-	}
-	try {
-		console.log(extractImageURI(obj.fields.main));
-	}
-	catch(err){
-		console.log("3 " + err);
-	}
-	try {
-		console.log(trail);
-	}
-	catch(err){
-		console.log("4 " + err);
-	}
-	try {
-		console.log(obj.webUrl);
-	}
-	catch(err){
-		console.log("5 " + err);
-	}
 	try{
 		var article = new Article({
 			id: obj.id,
@@ -113,15 +65,14 @@ function saveNewsToDb(obj){
 		});
 	}
 	catch(err){
-		console.log("OH SHIT THERE'S ANOTHER SHITTY ERROR ON MAKING ARTICLE " + err);
+		trail = " ";
 	}
 
 	article.save(function(err, article) {
 		if (err) console.error( "OH SHIT THERE IS AN ERROR!!!! " + err);
-
 		//console.dir(article);
 	});
-}*/
+}
 
 function fetchNews(req,res){
 	var data = request('http://content.guardianapis.com/search?api-key=t3myqd7scnfu4t5w8zp7jx4v&show-fields=headline,trailText,main&page=3&page-size=10', function (error, response, body) {
@@ -146,7 +97,7 @@ function getPrefNews(req,res){
 			if (!error && response.statusCode == 200) {
 				var prefData = JSON.parse(body);
 				//console.log(prefData.response.results);
-				for (var i = 3; i < prefData.response.results.length; i++){
+				for (var i = 0; i < prefData.response.results.length; i++){
 					savePrefNewsToDb(prefData.response.results[i]);
 					console.log("Done " + i + " " + prefData.response.results[i].id);
 				}				
@@ -162,9 +113,7 @@ function addPrefs(req, res){
 			return getKeywords(searchtext);
 
 	});
-
 	res.send(incomingID);
-
 }
 
 
@@ -190,19 +139,21 @@ function getKeywords(text){
 	});
 }
 
-
-
 function extractImageURI(main){
-	$ = cheerio.load(main);
-	var imgurl = $('figure img').attr('src');
-	imgurl = imgurl.substring(0, imgurl.length);
-	return imgurl;
+	try{
+		$ = cheerio.load(main);
+		var imgurl = $('figure img').attr('src');
+		imgurl = imgurl.substring(0, imgurl.length);
+		return imgurl;
+	}
+	catch(err){
+		return " ";
+	}
 }
 
 var server = restify.createServer();
 server.get('/getAllNews', fetchNews);
-//server.get('/getPrefNews', getPrefNews);
-//server.get('/fetchNews', fetchNews);
+server.get('/getPrefNews', getPrefNews);
 server.get('/addPrefs/:id', addPrefs)
 
 
