@@ -2,14 +2,21 @@ var FeedParser = require('feedparser')
   , request = require('request')
   , count = 0;
 
-function getKeywordsNYT(){
-  unirest.get("https://joanfihu-article-analysis-v1.p.mashape.com/collect?feed=http%3A%2F%2Frss.nytimes.com%2Fservices%2Fxml%2Frss%2Fnyt%2FInternationalHome.xml&format=json")
-  .header("X-Mashape-Key", "GTBYDQFyOxmshDs2wkncNpnUSw4Op1RII4XjsniOkwIP1IIJab")
-  .end(function (result) {
-    console.log(result.status, result.headers, result.body);
-  });
+function getKeywords(text, title){
+ request.post({
+url:'https://joanfihu-article-analysis-v1.p.mashape.com/text',
+form: {
+text: text,
+title: title
+},
+headers: {
+"X-Mashape-Key": "LuRENlOH2AmshyBQhe4hTZac6X8Tp1fSgfRjsnM48q2IVoqe2d"
 }
-
+}, function(err, httpResponse, body) {
+var response = JSON.parse(body);
+console.log(response.keywords[0]);
+});
+}
 
 
 /***********************************************************************************************************************
@@ -34,6 +41,7 @@ reqNYT.on('response', function (res) {
 
 feedparserNYT.on('error', function(error) {
   console.log('something went wrong...');
+  console.log(error);
 
 });
 
@@ -52,7 +60,7 @@ feedparserNYT.on('readable', function() {
     ,   description = body.replace(regex, "");
     console.log('description : ' + description);
     console.log('url : ' + item.guid);
-    console.log('keywords : ' + getKeywords(description) );
+    console.log('keywords : ' + getKeywords(item.title,description) );
     console.log('picURL : ' + item.meta.image.url);
     console.log('news source : ' + item.meta.copyright);
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< '+ item.meta.image.title + ' >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
@@ -100,7 +108,7 @@ feedparserTC.on('readable', function() {
     ,   description = body.replace(regex, "");
     console.log('description : ' + description);
     console.log('url : ' + item.guid);
-    console.log('keywords : ' + getKeywords(description));
+    console.log('keywords : ' + getKeywords(item.title, description));
     console.log('picURL : ' + item.image.url);
     console.log('news source : ' + item.meta.title);
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< '+ item.meta.title +' >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
